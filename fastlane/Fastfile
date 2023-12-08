@@ -1,0 +1,28 @@
+
+default_platform(:ios)
+
+platform :ios do
+  before_all do
+    Dotenv.load ".env.default"
+  end
+  desc "Push a new beta build to TestFlight"
+  lane :beta do
+    app_store_connect_api_key(
+      key_id: ENV["FASTLANE_KEY_ID"],
+      issuer_id: ENV["FASTLANE_ISSUER_ID"],
+      key_content: ENV["FASTLANE_KEY_CONTENT"]
+    )
+    get_certificates
+    get_provisioning_profile
+    increment_build_number(xcodeproj: "./ios/test.xcodeproj")
+    build_app(workspace: "./ios/test.xcworkspace", scheme: "test")
+    upload_to_testflight(
+      distribute_external: true,
+      groups: [],
+      skip_submission: true,
+      notify_external_testers: true,
+      skip_waiting_for_build_processing: false,
+      changelog:'Status Bar Fixed'
+    )
+  end
+end
